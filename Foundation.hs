@@ -2,14 +2,10 @@ module Foundation where
 
 import Import.NoFoundation
 import Database.Persist.Sql (ConnectionPool, runSqlPool)
-import Text.Hamlet          (hamletFile)
 import Text.Jasmine         (minifym)
-import Yesod.Auth.OpenId    (authOpenId, IdentifierType (Claimed))
 import Yesod.Default.Util   (addStaticContentExternal)
 import Yesod.Core.Types     (Logger)
 import qualified Yesod.Core.Unsafe as Unsafe
-import qualified Data.CaseInsensitive as CI
-import qualified Data.Text.Encoding as TE
 
 -- | The foundation datatype for your application. This can be a good place to
 -- keep settings and values requiring initialization before your application
@@ -64,31 +60,6 @@ instance Yesod App where
     -- For details, see the CSRF documentation in the Yesod.Core.Handler module of the yesod-core package.
     yesodMiddleware = defaultYesodMiddleware
 
-    defaultLayout widget = do
-        master <- getYesod
-        mmsg <- getMessage
-
-        -- We break up the default layout into two components:
-        -- default-layout is the contents of the body tag, and
-        -- default-layout-wrapper is the entire page. Since the final
-        -- value passed to hamletToRepHtml cannot be a widget, this allows
-        -- you to use normal widget features in default-layout.
-
-        pc <- widgetToPageContent $ do
-            addStylesheet $ StaticR css_bootstrap_css
-            $(widgetFile "default-layout")
-        withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
-
-    -- The page to be redirected to when authentication is required.
-    authRoute _ = Just $ AuthR LoginR
-
-    -- Routes not requiring authentication.
-    isAuthorized (AuthR _) _ = return Authorized
-    isAuthorized FaviconR _ = return Authorized
-    isAuthorized RobotsR _ = return Authorized
-    -- Default to Authorized for now.
-    isAuthorized _ _ = return Authorized
-
     -- This function creates static content files in the static folder
     -- and names them based on a hash of their content. This allows
     -- expiration dates to be set far in the future without worry of
@@ -125,32 +96,6 @@ instance YesodPersist App where
         runSqlPool action $ appConnPool master
 instance YesodPersistRunner App where
     getDBRunner = defaultGetDBRunner appConnPool
-
-instance YesodAuth App where
-    type AuthId App = UserId
-
-    -- Where to send a user after successful login
-    loginDest _ = HomeR
-    -- Where to send a user after logout
-    logoutDest _ = HomeR
-    -- Override the above two destinations when a Referer: header is present
-    redirectToReferer _ = True
-
-    authenticate creds = runDB $ do
-        x <- getBy $ UniqueUser $ credsIdent creds
-        case x of
-            Just (Entity uid _) -> return $ Authenticated uid
-            Nothing -> Authenticated <$> insert User
-                { userIdent = credsIdent creds
-                , userPassword = Nothing
-                }
-
-    -- You can add other plugins like Google Email, email or OAuth here
-    authPlugins _ = [authOpenId Claimed []]
-
-    authHttpManager = getHttpManager
-
-instance YesodAuthPersist App
 
 -- This instance is required to use forms. You can modify renderMessage to
 -- achieve customized and internationalized form validation messages.

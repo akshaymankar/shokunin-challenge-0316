@@ -20,9 +20,6 @@ library
                      Model
                      Settings
                      Settings.StaticFiles
-                     Handler.Common
-                     Handler.Home
-                     Handler.Comment
                      Handler.Coffee
 
     if flag(dev) || flag(library-only)
