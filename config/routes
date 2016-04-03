@@ -1,0 +1,13 @@
+/static StaticR Static appStatic
+/auth   AuthR   Auth   getAuth
+
+/favicon.ico FaviconR GET
+/robots.txt RobotsR GET
+
+/ HomeR GET POST
+
+/comments CommentR POST
+
+/menu Menu GET
+/coffee CoffeeR POST
+/order/#Int OrderR POST
