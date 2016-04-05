@@ -2,4 +2,4 @@
 
 /menu Menu GET
 /coffee CoffeeR POST
-/order/#Int OrderR POST
+/order/#String OrderR POST

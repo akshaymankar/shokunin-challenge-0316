@@ -21,6 +21,8 @@ library
                      Settings
                      Settings.StaticFiles
                      Handler.Coffee
+                     Model.CoffeeSize
+                     Utils
 
     if flag(dev) || flag(library-only)
         cpp-options:   -DDEVELOPMENT
@@ -82,6 +84,7 @@ library
                  , time
                  , case-insensitive
                  , wai
+                 , invertible-syntax
 
 executable         coffee-api2
     if flag(library-only)

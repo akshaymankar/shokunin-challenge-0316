@@ -12,6 +12,7 @@ module Application
     , handler
     , db
     , dbWithLogging
+    , runAllMigrations
     ) where
 
 import Control.Monad.Logger                 (liftLoc, runLoggingT, runStdoutLoggingT, LoggingT)
@@ -189,3 +190,6 @@ dbWithLogging r = do
   settings <- getAppSettings
   let conn = sqlDatabase $ appDatabaseConf settings
   runStdoutLoggingT . withSqliteConn conn $ runSqlConn r
+
+runAllMigrations :: ReaderT SqlBackend (LoggingT IO) ()
+runAllMigrations = runMigration migrateAll
