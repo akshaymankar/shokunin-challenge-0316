@@ -5,7 +5,8 @@ import Import
 import Data.HashMap.Strict as H (insert)
 import Data.Aeson               (Result, Object)
 import Data.Aeson.Types         (fromJSON)
-import Database.Persist.Sql     (fromSqlKey)
+import Database.Persist.Sql     (fromSqlKey, toSqlKey)
+import Prelude                  (read)
 
 coffeeEntityToJson :: Entity Coffee -> Value
 coffeeEntityToJson (Entity _ coffee) = coffeeToJson coffee
@@ -20,7 +21,7 @@ coffeeToJson coffee = object
   ["name" .= coffeeName coffee,
    "price" .= coffeePrice coffee,
    "caffeine_level" .= coffeeCaffineLevel coffee,
-   "order_path" .= ("/order/" ++ (show $ coffeeSlug coffee :: String)),
+   "order_path" .= ("/order/" ++ (show $ coffeeSlug coffee)),
    "milk_ratio" .= coffeeMilkRatio coffee]
 
 getMenu :: Handler TypedContent
@@ -47,3 +48,13 @@ postOrderR slug = do
   json <- parseJsonBody :: Handler (Result Value)
   insertedOrder <- fromMaybe (error "Invalid Order") $ map (runDB.insertEntity) $ orderFromResult coffeeEntity json
   sendResponseStatus status201 $ TypedContent "application/json" $ toContent $ orderEntityToJson insertedOrder
+
+getOrderR :: String -> Handler TypedContent
+getOrderR = getOrder.read
+
+getOrder :: Int64 -> Handler TypedContent
+getOrder orderId = do
+  orderEntity <- runDB $ get $ (toSqlKey orderId :: Key Order)
+  case orderEntity of
+    (Just _) -> return $ TypedContent "application/json" $ toContent $ object ["status" .= ("READY" :: String)]
+    Nothing -> error "fasdfd"
